@@ -28,6 +28,7 @@ public class DataGenerator {
     private Label lblRows;
     private ProgressBar progressBar;
     private Text txtRows;
+    private Display display = new Display();
     private List<Text> txtColumnNames = new ArrayList<Text>();
     private List<Text> formats = new ArrayList<Text>();
     private List<Combo> formatComboBoxes = new ArrayList<Combo>();
@@ -97,7 +98,8 @@ public class DataGenerator {
         btnGenerateData.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDown(MouseEvent e) {
-                processFields();
+                InputProcessor inputProc = new InputProcessor(txtColumnNames, formats, formatComboBoxes, dataTable, txtRows, display);
+                inputProc.processFields();
             }
         });
 
@@ -192,57 +194,4 @@ public class DataGenerator {
         shlDataGenerator.setSize(745, 603 + (formatComboBoxes.size() * 30));
     }
 
-    private void processFields() {
-        int i = 0;
-        if (dataTable.getColumnCount() > 0) {
-            dataTable.getColumn(0).dispose();
-            dataTable.removeAll();
-        }
-        InputProcessor inputProcessor = new InputProcessor(txtColumnNames, formats, formatComboBoxes, active, dataTable, txtRows);
-        for (Text format : formats) {
-            inputProcessor.setColumn(i);
-
-            switch (formatComboBoxes.get(i).getText()) {
-            case "Name":
-                System.out.println(format.getText());
-                break;
-            case "Number":
-                inputProcessor.numberProcessor();
-                // final org.eclipse.swt.widgets.TableColumn tblColumn = new
-                // org.eclipse.swt.widgets.TableColumn(dataTable, SWT.NONE);
-                // tblColumn.setWidth(100);
-                // tblColumn.setText(txtColumnNames.get(i).getText());
-                // for (int j = 0; j < Integer.parseInt(txtRows.getText()); j++)
-                // {
-                // TableItem item = new TableItem(dataTable, SWT.NULL);
-                // if (j % 2 == 1) {
-                // item.setBackground(new Color(d, 209, 220, 225));
-                // }
-                // item.setText(Integer.toString(RandomGenerators.generateRandomNumber(1,
-                // 10)));
-                // }
-                break;
-            case "Decimal":
-                System.out.println(format.getText());
-                break;
-            case "Unique Identifier":
-                System.out.println(format.getText());
-                break;
-            case "Fixed Value":
-                System.out.println(format.getText());
-                break;
-            case "Custom Random":
-                System.out.println(format.getText());
-                break;
-            case "Custom Format":
-                System.out.println(format.getText());
-                break;
-            default:
-
-                break;
-
-            }
-            i++;
-        }
-    }
 }
