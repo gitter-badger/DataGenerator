@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Random;
+import java.util.UUID;
 
 public class RandomGenerators {
 
@@ -76,6 +77,10 @@ public class RandomGenerators {
 
     }
 
+    public static UUID generateRandomUUID() {
+        return UUID.randomUUID();
+    }
+
     public static boolean generateRandomBoolean() {
         return randomGenerator.nextBoolean();
     }
@@ -86,7 +91,7 @@ public class RandomGenerators {
         GregorianCalendar date = new GregorianCalendar(year, month, 1);
         int day = randomGenerator.nextInt(date.getActualMaximum(date.DAY_OF_MONTH));
         date.set(year, month, day);
-        if(beforeDate != null && afterDate != null) {
+        if (beforeDate != null && afterDate != null) {
 
         } else {
 
@@ -98,4 +103,5 @@ public class RandomGenerators {
             throw new ParseException("Cannot parse date '" + date.getTime() + "' to format yyyy-MM-dd", day);
         }
     }
+
 }

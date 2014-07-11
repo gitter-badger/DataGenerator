@@ -12,7 +12,11 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -21,17 +25,17 @@ import org.eclipse.swt.widgets.Text;
 public class DataGenerator {
 
     protected Shell shlDataGenerator;
-    private Table dataTable;
+    protected Table dataTable;
     private Label lblWelcomeTo;
     private Button btnGenerateData;
     private Label lblProgress;
     private Label lblRows;
     private ProgressBar progressBar;
-    private Text txtRows;
-    private Display display = new Display();
-    private List<Text> txtColumnNames = new ArrayList<Text>();
-    private List<Text> formats = new ArrayList<Text>();
-    private List<Combo> formatComboBoxes = new ArrayList<Combo>();
+    protected Display display;
+    protected Text txtRows;
+    protected List<Text> columnNames = new ArrayList<Text>();
+    protected List<Text> formats = new ArrayList<Text>();
+    protected List<Combo> formatComboBoxes = new ArrayList<Combo>();
     private List<Boolean> active = new ArrayList<Boolean>();
     String[] tooltipsArray = new String[] {
             "Insert the minimum length and the maximum length of the name you want to generate.",
@@ -44,6 +48,8 @@ public class DataGenerator {
     String[] formatsArray = new String[] { "<!name(minimumLength, maximumLength)!>", "<!number(minimumValue, maximumValue)!>",
             "<!decim(minimumValue, maximumValue, numbersAfterComma)!>", "<!uuid!>", "<!!value!!>",
             "<!random('value1','value2', 'value3', ...)!>", "Custom Format" };
+
+    private InputProcessor inputProc;
 
     /**
      * Launch the application.
@@ -63,7 +69,8 @@ public class DataGenerator {
      * Open the window.
      */
     public void open() {
-        Display display = Display.getDefault();
+        display = Display.getDefault();
+        initiateClasses();
         createContents();
         shlDataGenerator.open();
         shlDataGenerator.layout();
@@ -74,12 +81,18 @@ public class DataGenerator {
         }
     }
 
+    public void initiateClasses() {
+        inputProc = new InputProcessor();
+    }
+
     /**
      * Create contents of the window.
      */
     protected void createContents() {
         shlDataGenerator = new Shell();
         shlDataGenerator.setText("Data Generator");
+
+        createMenu();
 
         lblWelcomeTo = new Label(shlDataGenerator, SWT.WRAP);
         lblWelcomeTo.setBounds(10, 10, 709, 125);
@@ -98,8 +111,11 @@ public class DataGenerator {
         btnGenerateData.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseDown(MouseEvent e) {
-                InputProcessor inputProc = new InputProcessor(txtColumnNames, formats, formatComboBoxes, dataTable, txtRows, display);
-                inputProc.processFields();
+                disableInput();
+                boolean generatingDone = inputProc.processFields();
+                if (generatingDone) {
+                    enableInput();
+                }
             }
         });
 
@@ -113,7 +129,7 @@ public class DataGenerator {
         txtRows = new Text(shlDataGenerator, SWT.BORDER | SWT.WRAP | SWT.RIGHT);
         txtRows.setToolTipText("Specify the amount of rows you wish to generate.");
         txtRows.setText("0");
-        txtRows.setBounds(457, 175, 76, 21);
+        txtRows.setBounds(457, 172, 76, 21);
 
         lblRows = new Label(shlDataGenerator, SWT.NONE);
         lblRows.setBounds(420, 175, 31, 15);
@@ -179,19 +195,133 @@ public class DataGenerator {
         final Text txtColumnName = new Text(shlDataGenerator, SWT.BORDER | SWT.RIGHT);
         txtColumnName.setToolTipText("Enter the name of the column you want to create data for.");
         txtColumnName.setText("Column Name");
-        txtColumnName.setBounds(539, 140 + (txtColumnNames.size() * 30), 180, 23);
-        txtColumnNames.add(txtColumnName);
+        txtColumnName.setBounds(539, 140 + (columnNames.size() * 30), 180, 23);
+        columnNames.add(txtColumnName);
+
     }
 
     private void moveFields() {
-        dataTable.setLocation(dataTable.getLocation().x, 200 + (formatComboBoxes.size() * 30));
-        btnGenerateData.setLocation(btnGenerateData.getLocation().x, 170 + (formatComboBoxes.size() * 30));
-        txtRows.setLocation(txtRows.getLocation().x, 175 + (formatComboBoxes.size() * 30));
-        lblRows.setLocation(lblRows.getLocation().x, 175 + (formatComboBoxes.size() * 30));
-        lblProgress.setLocation(lblProgress.getLocation().x, 533 + (formatComboBoxes.size() * 30));
-        progressBar.setLocation(progressBar.getLocation().x, 533 + (formatComboBoxes.size() * 30));
+        int factor = (formatComboBoxes.size() * 30);
+        dataTable.setLocation(dataTable.getLocation().x, 200 + factor);
+        btnGenerateData.setLocation(btnGenerateData.getLocation().x, 170 + factor);
+        lblRows.setLocation(lblRows.getLocation().x, 175 + factor);
+        lblProgress.setLocation(lblProgress.getLocation().x, 533 + factor);
+        progressBar.setLocation(progressBar.getLocation().x, 533 + factor);
+        txtRows.setLocation(txtRows.getLocation().x, 172 + factor);
 
         shlDataGenerator.setSize(745, 603 + (formatComboBoxes.size() * 30));
     }
 
+    private void disableInput() {
+        btnGenerateData.setEnabled(false);
+        txtRows.setEnabled(false);
+        for (int i = 0; i < formatComboBoxes.size(); i++) {
+            formatComboBoxes.get(i).setEnabled(false);
+            formats.get(i).setEnabled(false);
+            columnNames.get(i).setEnabled(false);
+        }
+    }
+
+    private void enableInput() {
+        btnGenerateData.setEnabled(true);
+        txtRows.setEnabled(true);
+        for (int i = 0; i < formatComboBoxes.size(); i++) {
+            formatComboBoxes.get(i).setEnabled(true);
+            formats.get(i).setEnabled(true);
+            columnNames.get(i).setEnabled(true);
+        }
+    }
+
+    private void createMenu() {
+        Menu menu = new Menu(shlDataGenerator, SWT.BAR);
+        shlDataGenerator.setMenuBar(menu);
+
+        // Create File Menu
+        MenuItem mntmFile = new MenuItem(menu, SWT.CASCADE);
+        mntmFile.setText("File");
+
+        Menu mnFile = new Menu(mntmFile);
+        mntmFile.setMenu(mnFile);
+
+        MenuItem mntmNewGenerator = new MenuItem(mnFile, SWT.NONE);
+        mntmNewGenerator.setText("New Generator");
+
+        MenuItem mntmNewItem_1 = new MenuItem(mnFile, SWT.NONE);
+        mntmNewItem_1.setText("Open Generator");
+
+        MenuItem mntmSaveGenerator = new MenuItem(mnFile, SWT.NONE);
+        mntmSaveGenerator.setText("Save Generator");
+
+        new MenuItem(mnFile, SWT.SEPARATOR);
+
+        MenuItem mntmRecentFiles = new MenuItem(mnFile, SWT.CASCADE);
+        mntmRecentFiles.setText("Recent Files");
+
+        Menu mnRecentFiles = new Menu(mntmRecentFiles);
+        mntmRecentFiles.setMenu(mnRecentFiles);
+
+        new MenuItem(mnFile, SWT.SEPARATOR);
+
+        MenuItem mntmQuit = new MenuItem(mnFile, SWT.NONE);
+        mntmQuit.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+                System.exit(0);
+            }
+        });
+        mntmQuit.setText("Quit");
+
+        // Create Generator Menu
+        MenuItem mntmNewSubmenu_1 = new MenuItem(menu, SWT.CASCADE);
+        mntmNewSubmenu_1.setText("Generator");
+
+        Menu mnGenerator = new Menu(mntmNewSubmenu_1);
+        mntmNewSubmenu_1.setMenu(mnGenerator);
+
+        MenuItem mntmDefaultTemplate = new MenuItem(mnGenerator, SWT.NONE);
+        mntmDefaultTemplate.setText("Create Default Generator Template");
+
+        new MenuItem(mnGenerator, SWT.SEPARATOR);
+
+        MenuItem mntmRenameCurrent = new MenuItem(mnGenerator, SWT.NONE);
+        mntmRenameCurrent.setText("Rename Current Generator");
+
+        MenuItem mntmRenameAll = new MenuItem(mnGenerator, SWT.NONE);
+        mntmRenameAll.setText("Rename All Generators");
+
+        new MenuItem(mnGenerator, SWT.SEPARATOR);
+
+        MenuItem mntmGenerateCurrent = new MenuItem(mnGenerator, SWT.NONE);
+        mntmGenerateCurrent.setText("Generate Data For Current Screen");
+
+        MenuItem mntmGenerateAll = new MenuItem(mnGenerator, SWT.NONE);
+        mntmGenerateAll.setText("Generate Data For All Screens");
+
+        // Create Help Menu
+        MenuItem mntmHelp = new MenuItem(menu, SWT.CASCADE);
+        mntmHelp.setText("Help");
+
+        Menu mnHelp = new Menu(mntmHelp);
+        mntmHelp.setMenu(mnHelp);
+
+        MenuItem mntmCheatSheet = new MenuItem(mnHelp, SWT.NONE);
+        mntmCheatSheet.setText("Cheat Sheet");
+
+        MenuItem mntmTipsTricks = new MenuItem(mnHelp, SWT.NONE);
+        mntmTipsTricks.setText("Tips and Tricks");
+
+        new MenuItem(mnHelp, SWT.SEPARATOR);
+
+        MenuItem mntmSubmitGenerator = new MenuItem(mnHelp, SWT.NONE);
+        mntmSubmitGenerator.setText("Submit Your Own Generator");
+
+        new MenuItem(mnHelp, SWT.SEPARATOR);
+
+        MenuItem mntmReportBug = new MenuItem(mnHelp, SWT.NONE);
+        mntmReportBug.setText("Report Bug");
+
+        new MenuItem(mnHelp, SWT.SEPARATOR);
+
+        MenuItem mntmAbout = new MenuItem(mnHelp, SWT.NONE);
+        mntmAbout.setText("About Data Generator");
+    }
 }

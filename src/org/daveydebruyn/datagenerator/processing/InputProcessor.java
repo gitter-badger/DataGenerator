@@ -1,39 +1,17 @@
 package org.daveydebruyn.datagenerator.processing;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import org.daveydebruyn.datagenerator.DataGenerator;
 import org.daveydebruyn.datagenerator.generators.RandomGenerators;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-public class InputProcessor {
+public class InputProcessor extends DataGenerator {
     int index = 0;
-    private List<Text> txtColumnNames = new ArrayList<Text>();
-    private List<Text> formats = new ArrayList<Text>();
-    private List<Combo> formatComboBoxes = new ArrayList<Combo>();
-    private Table dataTable;
-    private Display display;
     private TableItem items[];
-    private Text txtRows;
 
-    public InputProcessor(List<Text> txtColumnNames, List<Text> formats, List<Combo> formatComboBoxes, Table dataTable, Text txtRows,
-            Display display) {
-        super();
-        this.txtColumnNames = txtColumnNames;
-        this.formats = formats;
-        this.formatComboBoxes = formatComboBoxes;
-        this.dataTable = dataTable;
-        this.txtRows = txtRows;
-        this.display = display;
-    }
-
-    public void processFields() {
+    public boolean processFields() {
         while (dataTable.getColumnCount() > 0) {
             dataTable.getColumn(0).dispose();
         }
@@ -52,10 +30,10 @@ public class InputProcessor {
                 processDecimal();
                 break;
             case "Unique Identifier":
-                System.out.println(format.getText());
+                processUUID();
                 break;
             case "Fixed Value":
-                System.out.println(format.getText());
+                processFixedValue();
                 break;
             case "Custom Random":
                 System.out.println(format.getText());
@@ -70,6 +48,7 @@ public class InputProcessor {
             }
             setIndex(getIndex() + 1);
         }
+        return true;
     }
 
     public void processItems() {
@@ -104,6 +83,20 @@ public class InputProcessor {
         }
     }
 
+    public void processUUID() {
+        setColumn();
+        for (int j = 0; j < Integer.parseInt(txtRows.getText()); j++) {
+            items[j].setText(index, RandomGenerators.generateRandomUUID().toString());
+        }
+    }
+
+    public void processFixedValue() {
+        setColumn();
+        for (int j = 0; j < Integer.parseInt(txtRows.getText()); j++) {
+            items[j].setText(index, formats.get(index).getText());
+        }
+    }
+
     public void setIndex(int index) {
         this.index = index;
     }
@@ -115,6 +108,7 @@ public class InputProcessor {
     public void setColumn() {
         final org.eclipse.swt.widgets.TableColumn tblColumn = new org.eclipse.swt.widgets.TableColumn(dataTable, SWT.NONE, getIndex());
         tblColumn.setWidth(100);
-        tblColumn.setText(txtColumnNames.get(getIndex()).getText());
+        tblColumn.setText(columnNames.get(getIndex()).getText());
     }
+
 }
