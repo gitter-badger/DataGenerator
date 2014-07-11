@@ -2,6 +2,9 @@ package org.daveydebruyn.datagenerator.generators;
 
 import java.text.DecimalFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.Random;
 
 public class RandomGenerators {
@@ -71,5 +74,28 @@ public class RandomGenerators {
             return min + randomGenerator.nextDouble() * (max - min);
         }
 
+    }
+
+    public static boolean generateRandomBoolean() {
+        return randomGenerator.nextBoolean();
+    }
+
+    public static Date generateRandomDate(Date beforeDate, Date afterDate, Date interval) throws ParseException {
+        int year = randomGenerator.nextInt(2014);
+        int month = randomGenerator.nextInt(12);
+        GregorianCalendar date = new GregorianCalendar(year, month, 1);
+        int day = randomGenerator.nextInt(date.getActualMaximum(date.DAY_OF_MONTH));
+        date.set(year, month, day);
+        if(beforeDate != null && afterDate != null) {
+
+        } else {
+
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        try {
+            return sdf.parse(sdf.format(date.getTime()));
+        } catch (ParseException e) {
+            throw new ParseException("Cannot parse date '" + date.getTime() + "' to format yyyy-MM-dd", day);
+        }
     }
 }
