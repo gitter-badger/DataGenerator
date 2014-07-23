@@ -42,10 +42,7 @@ public class RandomGenerators {
     }
 
     public static Integer generateRandomNumber(Integer min, Integer max) {
-        if (max != null && min != null) {
-            return randomGenerator.nextInt(max - min) + min;
-        }
-        return randomGenerator.nextInt(10);
+        return (max != null && min != null) ? randomGenerator.nextInt(max - min) + min : randomGenerator.nextInt(10);
     }
 
     public static double generateRandomDecimal(Double max, Double min) {
