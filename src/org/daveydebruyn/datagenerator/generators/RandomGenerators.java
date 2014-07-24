@@ -1,8 +1,6 @@
 package org.daveydebruyn.datagenerator.generators;
 
-import java.text.DecimalFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Random;
@@ -10,68 +8,37 @@ import java.util.UUID;
 
 public class RandomGenerators {
 
-    private static int afterComma;
-    private static String format = "0.";
-    private static DecimalFormat df;
-
     private static Random randomGenerator = new Random();
 
-    // private static void main(String[] args) {
-    // for (int i = 0; i < 20; i++) {
-    // int max = randomGenerator.nextInt(400);
-    // int min = 0;
-    // int afterComma = randomGenerator.nextInt(9) + 1;
-    // System.out.println("Input: " + max + ", " + min + ", " + afterComma);
-    // System.out.println("Return: " +
-    // RandomGenerators.generateRandomDecimal(max, min, afterComma));
-    // }
-    // }
+    private static int afterComma = 0;
+
+    public static Integer generateRandomNumber(Integer min, Integer max) {
+        return (min != null && max != null) ? randomGenerator.nextInt(max - min) + min      :
+               (min != null && max == null) ? randomGenerator.nextInt((min*2) - min) + min  :
+               (min == null && max != null) ? randomGenerator.nextInt(max)                  : randomGenerator.nextInt(10);
+    }
+
+    public static double generateRandomDecimal(Double max, Double min) {
+        if(afterComma == 0) {
+            String[] minArray = min.toString().split("\\.");
+            String[] maxArray = max.toString().split("\\.");
+
+            afterComma = (minArray[1].length() > maxArray[1].length()) ? minArray[1].length() : maxArray[1].length();
+        }
+
+        String formatted = String.format("%." + afterComma + "f", min + randomGenerator.nextDouble() * (max - min));
+        formatted = formatted.replaceAll(",",".");
+        return Double.parseDouble(formatted);
+    }
 
     public static String generateRandomString(boolean toUpperCase, int size) {
-        // Generate random letter from alphabet and return it as upper or
-        // lowercase;
         String alphabet = "abcdefghijklmnopqrstuvwxyz";
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < size; i++) {
             sb.append(alphabet.charAt(randomGenerator.nextInt(alphabet.length())));
         }
-        if (toUpperCase) {
-            return sb.toString().toUpperCase();
-        } else {
-            return sb.toString();
-        }
-    }
 
-    public static Integer generateRandomNumber(Integer min, Integer max) {
-        return (max != null && min != null) ? randomGenerator.nextInt(max - min) + min : randomGenerator.nextInt(10);
-    }
-
-    public static double generateRandomDecimal(Double max, Double min) {
-        if (format == "0.") {
-            String[] minArray = min.toString().split("\\.");
-            String[] maxArray = max.toString().split("\\.");
-
-            if (minArray[1].length() > maxArray[1].length()) {
-                afterComma = minArray[1].length();
-            } else {
-                afterComma = maxArray[1].length();
-            }
-
-            for (int i = 0; i < afterComma; i++) {
-                format += "0";
-            }
-
-            df = new DecimalFormat(format);
-        }
-
-        String formate = df.format(min + randomGenerator.nextDouble() * (max - min));
-
-        try {
-            return (Double) df.parse(formate);
-        } catch (ParseException pe) {
-            return min + randomGenerator.nextDouble() * (max - min);
-        }
-
+        return (toUpperCase) ? sb.toString().toUpperCase() : sb.toString();
     }
 
     public static UUID generateRandomUUID() {
@@ -81,24 +48,64 @@ public class RandomGenerators {
     public static boolean generateRandomBoolean() {
         return randomGenerator.nextBoolean();
     }
+    
+    public static Calendar generateRandomDate(Calendar beforeDate, Calendar afterDate, int interval) throws Exception {
+        return afterDate;
+//        Calendar generatedDate = null;
+//        if(beforeDate != null && afterDate != null) {
+//            if(beforeDate.after(afterDate)) {
+//                generatedDate = new Calendar(
+//                        generateRandomNumber(afterDate.getYear(), beforeDate.getYear()),
+//                        generateRandomNumber(afterDate.getMonth(), beforeDate.getMonth()),
+//                        generateRandomNumber(afterDate.getDay(), beforeDate.getDay()));
+//            } else {
+    }
 
-    public static Date generateRandomDate(Date beforeDate, Date afterDate, Date interval) throws ParseException {
-        int year = randomGenerator.nextInt(2014);
-        int month = randomGenerator.nextInt(12);
-        GregorianCalendar date = new GregorianCalendar(year, month, 1);
-        int day = randomGenerator.nextInt(date.getActualMaximum(date.DAY_OF_MONTH));
-        date.set(year, month, day);
-        if (beforeDate != null && afterDate != null) {
-
+    //TODO: Make this work with interval.
+    public static Date generateRandomDate(Date beforeDate, Date afterDate, int interval) throws Exception {
+        Date generatedDate = null;
+        if(beforeDate != null && afterDate != null) {
+            if(beforeDate.after(afterDate)) {
+                generatedDate = new Date(
+                        generateRandomNumber(afterDate.getYear(), beforeDate.getYear()),
+                        generateRandomNumber(afterDate.getMonth(), beforeDate.getMonth()),
+                        generateRandomNumber(afterDate.getDay(), beforeDate.getDay()));
+            } else {
+                throw new Exception("Can't generate a date because " + beforeDate + " must be after " + afterDate + ".");
+            }
+        } else if (beforeDate != null && afterDate == null) {
+            generatedDate = new Date(
+                    generateRandomNumber(null, beforeDate.getYear()),
+                    generateRandomNumber(null, beforeDate.getMonth()),
+                    generateRandomNumber(null, beforeDate.getDay()));
+        } else if (beforeDate == null && afterDate != null) {
+            generatedDate = new Date(
+                    generateRandomNumber(afterDate.getYear(), null),
+                    generateRandomNumber(afterDate.getMonth(), null),
+                    generateRandomNumber(afterDate.getDay(), null));
         } else {
+            Date date = new Date();
 
+            int year = date.getYear();
+            int month = generateRandomNumber(0, 12);
+            int day = 1;
+
+            // Create a calendar object and set year and month
+            Calendar mycal = new GregorianCalendar(year, month, day);
+
+            // Get the number of days in that month
+            int daysInMonth = mycal.getActualMaximum(Calendar.DAY_OF_MONTH);
+
+            generatedDate = new Date(
+                    generateRandomNumber(date.getYear() -10, date.getYear() + 10),
+                    month,
+                    generateRandomNumber(1, daysInMonth+1));
         }
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-        try {
-            return sdf.parse(sdf.format(date.getTime()));
-        } catch (ParseException e) {
-            throw new ParseException("Cannot parse date '" + date.getTime() + "' to format yyyy-MM-dd", day);
-        }
+        return generatedDate;
+    }
+
+    public static String generateNull() {
+        return "null";
     }
 
 }

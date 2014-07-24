@@ -1,9 +1,9 @@
 package org.daveydebruyn.datagenerator;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.daveydebruyn.datagenerator.generators.RandomGenerators;
 import org.junit.Test;
@@ -14,14 +14,24 @@ public class RandomGeneratorsTest {
     public void testGenerateRandomNumber() {
         List<Integer> test1Array = new ArrayList<Integer>();
         List<Integer> test2Array = new ArrayList<Integer>();
+        List<Integer> test3Array = new ArrayList<Integer>();
+        List<Integer> test4Array = new ArrayList<Integer>();
         for (int i = 0; i < 10; i++) {
             test1Array.add(RandomGenerators.generateRandomNumber(null, null));
         }
         for (int i = 0; i < 10; i++) {
-            test2Array.add(RandomGenerators.generateRandomNumber(0, 99));
+            test2Array.add(RandomGenerators.generateRandomNumber(10, null));
+        }
+        for (int i = 0; i < 10; i++) {
+            test3Array.add(RandomGenerators.generateRandomNumber(null, 99));
+        }
+        for (int i = 0; i < 10; i++) {
+            test4Array.add(RandomGenerators.generateRandomNumber(0, 99));
         }
         System.out.println(test1Array);
         System.out.println(test2Array);
+        System.out.println(test3Array);
+        System.out.println(test4Array);
     }
 
     @Test
@@ -55,16 +65,25 @@ public class RandomGeneratorsTest {
          }
          System.out.println(testArray);
     }
+    
+    @Test
+    public void testGenerateRandomUUID() {
+        List<UUID> testArray = new ArrayList<UUID>();
+        for(int i = 0;i<10;i++) {
+            testArray.add(RandomGenerators.generateRandomUUID());
+        }
+        System.out.println(testArray);
+    }
 
     @Test
-    public void testGenerateRandomDate() throws ParseException {
+    public void testGenerateRandomDate() throws Exception {
         List<Date> test1Array = new ArrayList<Date>();
         List<Date> test2Array = new ArrayList<Date>();
         for (int i = 0; i < 10; i++) {
-            test1Array.add(RandomGenerators.generateRandomDate(null, null, null));
+//            test1Array.add(RandomGenerators.generateRandomDate(null, null, 0));
         }
         for (int i = 0; i < 10; i++) {
-            test2Array.add(RandomGenerators.generateRandomDate(null, null, null));
+//            test2Array.add(RandomGenerators.generateRandomDate(null, null, 0));
         }
         System.out.println(test1Array);
         System.out.println(test2Array);
